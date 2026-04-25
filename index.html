@@ -4,150 +4,467 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>မင်းအရမ်းလှတယ်</title>
-  <meta name="description" content="You are so beautiful - interactive love message">
+  <meta name="description" content="Touch the hearts - interactive love message">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    *{margin:0;padding:0;box-sizing:border-box}
-    html,body{width:100%;height:100%;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
-    body{font-family:'Padauk',sans-serif;position:relative}
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
-    .bg{position:fixed;inset:0;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);background-size:400% 400%;animation:bg 15s ease infinite;z-index:0}
-    @keyframes bg{0%{background-position:0% 50%}50%{background-position:100% 100%}100%{background-position:0% 50%}}
+    html, body {
+      width: 100%; height: 100%; overflow: hidden;
+      -webkit-user-select: none; user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-    .stars{position:fixed;inset:0;z-index:1;pointer-events:none}
-    .star{position:absolute;border-radius:50%;opacity:0;animation:rise linear infinite}
-    @keyframes rise{0%{opacity:0;transform:translateY(100vh) scale(0)}10%{opacity:.5}90%{opacity:.2}100%{opacity:0;transform:translateY(-10vh) scale(1)}}
+    body {
+      font-family: 'Padauk', sans-serif;
+      position: relative;
+    }
 
-    /* Prompt */
-    .prompt{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;pointer-events:none;transition:opacity 1s}
-    .prompt.hide{opacity:0}
-    .prompt-icon{font-size:3.5rem;margin-bottom:1rem;animation:pulse 2s ease-in-out infinite}
-    .prompt h2{color:rgba(255,255,255,.4);font-size:.9rem;letter-spacing:2px;font-weight:400}
-    .prompt p{color:rgba(255,255,255,.25);font-size:.8rem;margin-top:.4rem}
-    @keyframes pulse{0%,100%{transform:scale(1);opacity:.7}50%{transform:scale(1.2);opacity:1}}
+    /* ── Animated Background ── */
+    .bg {
+      position: fixed; inset: 0; z-index: 0;
+      background: linear-gradient(160deg, #0a0015 0%, #1a0030 30%, #2d1050 55%, #0d0020 100%);
+      background-size: 300% 300%;
+      animation: bgShift 20s ease infinite;
+    }
+    @keyframes bgShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
 
-    /* Touch text */
-    .tt{position:fixed;z-index:10;pointer-events:none;white-space:nowrap;font-weight:700;text-align:center;text-shadow:0 0 15px currentColor,0 0 30px currentColor;animation:pop 2.5s ease-out forwards;transform:translate(-50%,-50%)}
-    @keyframes pop{0%{opacity:0;transform:translate(-50%,-50%) scale(.3);filter:blur(6px)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.1);filter:blur(0)}30%{transform:translate(-50%,-50%) scale(1)}70%{opacity:.85;transform:translate(-50%,-60%) scale(1)}100%{opacity:0;transform:translate(-50%,-110%) scale(.5);filter:blur(3px)}}
+    /* ── Soft ambient glow blobs ── */
+    .ambient {
+      position: fixed; border-radius: 50%; filter: blur(80px);
+      z-index: 1; pointer-events: none; opacity: 0.12;
+    }
+    .ambient-1 { width: 300px; height: 300px; background: #ff6b9d; top: 10%; left: -10%; animation: drift1 12s ease-in-out infinite; }
+    .ambient-2 { width: 250px; height: 250px; background: #c44dff; bottom: 15%; right: -8%; animation: drift2 15s ease-in-out infinite; }
+    .ambient-3 { width: 200px; height: 200px; background: #ff4d8d; top: 50%; left: 50%; animation: drift3 18s ease-in-out infinite; }
+    @keyframes drift1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(40px, 30px); } }
+    @keyframes drift2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-30px, -40px); } }
+    @keyframes drift3 { 0%,100% { transform: translate(-50%,-50%); } 50% { transform: translate(-30%, -60%); } }
 
-    /* Hearts */
-    .hb{position:fixed;z-index:9;pointer-events:none;font-size:1.1rem;animation:fly 1.6s ease-out forwards;transform:translate(-50%,-50%)}
-    @keyframes fly{0%{opacity:1;transform:translate(-50%,-50%) scale(.4)}100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(1.1) rotate(var(--r))}}
+    /* ── Prompt ── */
+    .prompt {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 50; pointer-events: none;
+      transition: opacity 1.5s ease;
+    }
+    .prompt.hide { opacity: 0; }
+    .prompt-heart {
+      font-size: 4rem; margin-bottom: 1rem;
+      animation: promptPulse 2s ease-in-out infinite;
+    }
+    @keyframes promptPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.15); }
+    }
+    .prompt h2 {
+      color: rgba(255,255,255,0.45); font-size: 0.95rem;
+      letter-spacing: 1.5px; font-weight: 400;
+    }
+    .prompt p {
+      color: rgba(255,255,255,0.28); font-size: 0.8rem;
+      margin-top: 0.4rem;
+    }
 
-    /* Ripple */
-    .rp{position:fixed;z-index:8;pointer-events:none;border:2px solid rgba(255,255,255,.25);border-radius:50%;width:50px;height:50px;transform:translate(-50%,-50%) scale(0);animation:rpe 1s ease-out forwards}
-    @keyframes rpe{0%{transform:translate(-50%,-50%) scale(0);opacity:.5}100%{transform:translate(-50%,-50%) scale(3);opacity:0}}
+    /* ── Floating hearts ── */
+    .float-heart {
+      position: fixed; z-index: 10;
+      cursor: pointer; pointer-events: auto;
+      animation: floatUp var(--dur) linear forwards;
+      filter: drop-shadow(0 0 8px var(--glow));
+      transition: transform 0.15s ease;
+      font-size: var(--size);
+      will-change: transform, opacity;
+    }
+    .float-heart:active {
+      transform: scale(1.4);
+    }
 
-    /* Glow */
-    .gl{position:fixed;z-index:7;pointer-events:none;width:60px;height:60px;border-radius:50%;transform:translate(-50%,-50%);animation:gp .9s ease-out forwards}
-    @keyframes gp{0%{opacity:.7;transform:translate(-50%,-50%) scale(.2);box-shadow:0 0 25px 8px currentColor}100%{opacity:0;transform:translate(-50%,-50%) scale(1.8);box-shadow:0 0 50px 15px currentColor}}
+    @keyframes floatUp {
+      0% {
+        opacity: 0;
+        transform: translateX(0) translateY(0) rotate(0deg) scale(0.5);
+      }
+      5% {
+        opacity: 1;
+        transform: translateX(0) translateY(-5vh) rotate(5deg) scale(1);
+      }
+      25% {
+        transform: translateX(var(--sx1)) translateY(-25vh) rotate(-8deg) scale(1);
+      }
+      50% {
+        transform: translateX(var(--sx2)) translateY(-50vh) rotate(10deg) scale(1.05);
+      }
+      75% {
+        transform: translateX(var(--sx3)) translateY(-75vh) rotate(-5deg) scale(1);
+      }
+      95% {
+        opacity: 0.7;
+      }
+      100% {
+        opacity: 0;
+        transform: translateX(var(--sx4)) translateY(-115vh) rotate(15deg) scale(0.7);
+      }
+    }
 
-    /* Sparkle */
-    .sp{position:fixed;z-index:11;pointer-events:none;width:3px;height:3px;border-radius:50%;animation:sf .7s ease-out forwards}
-    @keyframes sf{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(0) translateY(-15px)}}
+    /* ── Message popup ── */
+    .msg {
+      position: fixed; z-index: 100;
+      pointer-events: none; white-space: nowrap;
+      font-weight: 700; text-align: center;
+      color: var(--c);
+      text-shadow: 0 0 12px var(--c), 0 0 25px var(--c);
+      animation: msgPop 2.8s ease-out forwards;
+      transform: translate(-50%, -50%);
+    }
+    @keyframes msgPop {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.2) rotate(-8deg);
+        filter: blur(6px);
+      }
+      10% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.2) rotate(2deg);
+        filter: blur(0);
+      }
+      25% {
+        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+      }
+      65% {
+        opacity: 0.9;
+        transform: translate(-50%, -65%) scale(1) rotate(0deg);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -130%) scale(0.5) rotate(5deg);
+        filter: blur(3px);
+      }
+    }
 
-    /* Counter */
-    .ctr{position:fixed;bottom:env(safe-area-inset-bottom,1.5rem);bottom:1.5rem;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.2);font-size:.7rem;letter-spacing:2px;z-index:5;pointer-events:none}
-    .ctr span{color:rgba(255,182,193,.5);font-size:.9rem;font-weight:700}
+    /* ── Heart burst on tap ── */
+    .burst {
+      position: fixed; z-index: 90;
+      pointer-events: none; font-size: 1rem;
+      animation: burstFly 1.4s ease-out forwards;
+    }
+    @keyframes burstFly {
+      0% { opacity: 1; transform: translate(-50%,-50%) scale(0.3); }
+      100% { opacity: 0; transform: translate(var(--bx), var(--by)) scale(1) rotate(var(--br)); }
+    }
+
+    /* ── Sparkle ring ── */
+    .ring {
+      position: fixed; z-index: 85;
+      pointer-events: none;
+      width: 50px; height: 50px;
+      border-radius: 50%;
+      border: 2px solid var(--rc);
+      transform: translate(-50%, -50%) scale(0);
+      animation: ringExpand 0.9s ease-out forwards;
+    }
+    @keyframes ringExpand {
+      0% { transform: translate(-50%,-50%) scale(0); opacity: 0.6; }
+      100% { transform: translate(-50%,-50%) scale(2.5); opacity: 0; }
+    }
+
+    /* ── Sparkle dots ── */
+    .dot {
+      position: fixed; z-index: 95;
+      pointer-events: none;
+      width: 3px; height: 3px;
+      border-radius: 50%;
+      background: var(--dc);
+      box-shadow: 0 0 5px var(--dc);
+      animation: dotFade 0.6s ease-out forwards;
+    }
+    @keyframes dotFade {
+      0% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(0) translateY(-12px); }
+    }
+
+    /* ── Counter ── */
+    .counter {
+      position: fixed;
+      bottom: max(env(safe-area-inset-bottom, 1rem), 1.2rem);
+      left: 50%; transform: translateX(-50%);
+      color: rgba(255,255,255,0.18);
+      font-size: 0.7rem; letter-spacing: 2px;
+      z-index: 60; pointer-events: none;
+    }
+    .counter span {
+      color: rgba(255,182,193,0.45);
+      font-weight: 700; font-size: 0.85rem;
+    }
+
+    /* ── Top subtle title ── */
+    .top-title {
+      position: fixed;
+      top: max(env(safe-area-inset-top, 1rem), 1.2rem);
+      left: 50%; transform: translateX(-50%);
+      color: rgba(255,255,255,0.1);
+      font-size: 0.65rem; letter-spacing: 3px;
+      z-index: 60; pointer-events: none;
+      text-transform: uppercase;
+    }
   </style>
 </head>
 <body>
   <div class="bg"></div>
-  <div class="stars" id="stars"></div>
+  <div class="ambient ambient-1"></div>
+  <div class="ambient ambient-2"></div>
+  <div class="ambient ambient-3"></div>
+
   <div class="prompt" id="prompt">
-    <div class="prompt-icon">💖</div>
-    <h2>Touch Anywhere</h2>
-    <p>ဘယ်နေရာမဆို ထိလိုက်ပါ</p>
+    <div class="prompt-heart">💖</div>
+    <h2>အသဲပုံလေးတွေကို ထိလိုက်ပါ</h2>
+    <p>Touch the floating hearts</p>
   </div>
-  <div class="ctr" id="ctr">💕 <span id="cnt">0</span></div>
+
+  <div class="top-title">✦ with love ✦</div>
+  <div class="counter" id="ctr">💕 <span id="cnt">0</span></div>
 
 <script>
-const C=['#ff6b9d','#c44dff','#ff4d8d','#ff85a1','#e879f9','#a78bfa','#f9a8d4','#fb7185','#f472b6','#c084fc','#ff9ff3','#f368e0','#ff75a0','#7c5cff','#ffc048','#00d2d3'];
-
-const M=[
-  'မင်းအရမ်းလှတယ်','မင်းအရမ်းလှတယ် ✨','အရမ်းလှတယ် 💗','လှလိုက်တာ 💖',
-  'မင်းချစ်စရာကြီး 🥰','ချစ်တယ် 💕','အရမ်းချစ်တယ် ❤️','မင်းကိုသတိရတယ်',
-  'မင်းအကောင်းဆုံးပဲ 🌟','နှလုံးသားလေး 💓','မင်းက အချစ်ဆုံး','လွမ်းတယ် 🌙',
-  'အမြဲချစ်မယ် 💘','ပန်းလေးလိုလှတယ် 🌸','ကြယ်လေးလိုတောက်ပတယ် ⭐',
-  'မင်းမရှိရင် မရဘူး 💝','အသက်ရှူလေလိုချစ်တယ်','Sweet 💗',
-  'I Love You 💖','So Beautiful 🦋','မင်းပဲ ချစ်တယ် 🌺','သိပ်ချစ်တယ် 💞',
-  'အိပ်မက်ထဲမှာတောင် မင်းပဲ 🌙','ချစ်တတ်တာ မင်းတစ်ယောက်ပဲ',
-  'လှပြီး ချစ်စရာကောင်းတယ်','နေ့တိုင်း ပိုချစ်လာတယ် 💗',
-  'မင်းပြုံးရင် ကမ္ဘာကြီး လှသွားတယ် 😊','အချိန်တိုင်း မင်းကိုပဲ စဉ်းစားတယ်',
-  'မင်းအတွက်ပဲ ရှင်သန်တာ ❤️','ချစ်ခြင်းရဲ့ အဓိပ္ပါယ်က မင်းပဲ'
+// ── Config ──
+const COLORS = [
+  '#ff6b9d','#c44dff','#ff4d8d','#ff85a1','#e879f9',
+  '#a78bfa','#f9a8d4','#fb7185','#f472b6','#c084fc',
+  '#ff9ff3','#f368e0','#ff75a0','#ffc048','#00d2d3'
 ];
 
-const H=['💖','💗','💕','💓','💝','💘','🌸','✨','🦋','🌺','💐','🌷','⭐','🥰'];
-let tc=0,ph=false;
+const MESSAGES = [
+  'မင်းအရမ်းလှတယ်',
+  'မင်းအရမ်းလှတယ် ✨',
+  'အရမ်းလှတယ် 💗',
+  'လှလိုက်တာ 💖',
+  'မင်းချစ်စရာကြီး 🥰',
+  'ချစ်တယ် 💕',
+  'အရမ်းချစ်တယ် ❤️',
+  'မင်းကိုသတိရတယ်',
+  'မင်းအကောင်းဆုံးပဲ 🌟',
+  'နှလုံးသားလေး 💓',
+  'မင်းက အချစ်ဆုံး',
+  'လွမ်းတယ် 🌙',
+  'အမြဲချစ်မယ် 💘',
+  'ပန်းလေးလိုလှတယ် 🌸',
+  'ကြယ်လေးလိုတောက်ပတယ် ⭐',
+  'မင်းမရှိရင် မရဘူး 💝',
+  'အသက်ရှူလေလိုချစ်တယ်',
+  'Sweet 💗',
+  'I Love You 💖',
+  'So Beautiful 🦋',
+  'မင်းပဲ ချစ်တယ် 🌺',
+  'သိပ်ချစ်တယ် 💞',
+  'အိပ်မက်ထဲမှာတောင် မင်းပဲ 🌙',
+  'ချစ်တတ်တာ မင်းတစ်ယောက်ပဲ',
+  'လှပြီး ချစ်စရာကောင်းတယ်',
+  'နေ့တိုင်း ပိုချစ်လာတယ် 💗',
+  'မင်းပြုံးရင် ကမ္ဘာကြီးလှသွားတယ် 😊',
+  'အချိန်တိုင်း မင်းကိုပဲ စဉ်းစားတယ်',
+  'မင်းအတွက်ပဲ ရှင်သန်တာ ❤️',
+  'ချစ်ခြင်းရဲ့ အဓိပ္ပါယ်က မင်းပဲ',
+];
 
-// Stars
-(function(){
-  const c=document.getElementById('stars');
-  for(let i=0;i<25;i++){
-    const d=document.createElement('div');d.className='star';
-    const s=Math.random()*3+1,cl=C[Math.floor(Math.random()*C.length)];
-    d.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*100}%;background:${cl};box-shadow:0 0 ${s*3}px ${cl};animation-duration:${Math.random()*8+5}s;animation-delay:${Math.random()*10}s`;
-    c.appendChild(d);
+const HEARTS = ['💖','💗','💕','💓','💝','💘','❤️','🩷','🩵','💜','🤍','♥️'];
+const BURST_ICONS = ['💖','💗','✨','🌸','⭐','💕','🦋','🌺','💫','🩷'];
+
+let touchCount = 0;
+let promptHidden = false;
+let lastMsgIndex = -1;
+
+function rc() { return COLORS[Math.floor(Math.random() * COLORS.length)]; }
+function rand(min, max) { return Math.random() * (max - min) + min; }
+
+// ── Get unique message ──
+function getMsg() {
+  let idx;
+  do { idx = Math.floor(Math.random() * MESSAGES.length); } while (idx === lastMsgIndex);
+  lastMsgIndex = idx;
+  return MESSAGES[idx];
+}
+
+// ── Spawn a floating heart ──
+function spawnHeart() {
+  const el = document.createElement('div');
+  el.className = 'float-heart';
+
+  const heart = HEARTS[Math.floor(Math.random() * HEARTS.length)];
+  const size = rand(1.4, 2.8);
+  const x = rand(8, 92);
+  const dur = rand(6, 12);
+  const color = rc();
+
+  // Sway offsets for natural movement
+  const sx1 = rand(-30, 30);
+  const sx2 = rand(-25, 25);
+  const sx3 = rand(-35, 35);
+  const sx4 = rand(-20, 20);
+
+  el.textContent = heart;
+  el.style.cssText = `
+    left: ${x}%;
+    bottom: -60px;
+    --size: ${size}rem;
+    --dur: ${dur}s;
+    --glow: ${color};
+    --sx1: ${sx1}px;
+    --sx2: ${sx2}px;
+    --sx3: ${sx3}px;
+    --sx4: ${sx4}px;
+    font-size: ${size}rem;
+  `;
+
+  // ── Touch/click handler on this heart ──
+  function onTap(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const rect = el.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+
+    // Hide prompt
+    if (!promptHidden) {
+      document.getElementById('prompt').classList.add('hide');
+      promptHidden = true;
+    }
+
+    // Count
+    touchCount++;
+    document.getElementById('cnt').textContent = touchCount;
+
+    // Effects
+    showMessage(cx, cy);
+    burstHearts(cx, cy);
+    showRing(cx, cy);
+    showDots(cx, cy);
+
+    // Remove this heart
+    el.style.pointerEvents = 'none';
+    el.style.transition = 'transform 0.3s, opacity 0.3s';
+    el.style.transform = 'scale(1.8)';
+    el.style.opacity = '0';
+    setTimeout(() => el.remove(), 350);
   }
-})();
 
-function rc(){return C[Math.floor(Math.random()*C.length)]}
+  el.addEventListener('touchstart', onTap, { passive: false });
+  el.addEventListener('click', onTap);
 
-function text(x,y){
-  const e=document.createElement('div');e.className='tt';
-  const c=rc();
-  e.textContent=M[Math.floor(Math.random()*M.length)];
-  e.style.cssText=`left:${x}px;top:${y}px;color:${c};font-size:${(Math.random()*.4+.75).toFixed(2)}rem`;
-  document.body.appendChild(e);setTimeout(()=>e.remove(),2600);
+  document.body.appendChild(el);
+
+  // Auto-remove after animation
+  setTimeout(() => el.remove(), dur * 1000 + 500);
 }
 
-function hearts(x,y){
-  const n=Math.floor(Math.random()*3)+3;
-  for(let i=0;i<n;i++){
-    const e=document.createElement('div');e.className='hb';
-    e.textContent=H[Math.floor(Math.random()*H.length)];
-    const a=(Math.PI*2*i)/n+(Math.random()-.5)*.5,d=Math.random()*90+40;
-    e.style.cssText=`left:${x}px;top:${y}px;--tx:${Math.cos(a)*d}px;--ty:${Math.sin(a)*d}px;--r:${Math.random()*360}deg;animation-delay:${i*.03}s`;
-    document.body.appendChild(e);setTimeout(()=>e.remove(),1800);
+// ── Show message ──
+function showMessage(x, y) {
+  const el = document.createElement('div');
+  el.className = 'msg';
+  const color = rc();
+  el.textContent = getMsg();
+  el.style.cssText = `
+    left: ${x}px; top: ${y}px;
+    --c: ${color};
+    font-size: ${rand(0.75, 1.05).toFixed(2)}rem;
+  `;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2900);
+}
+
+// ── Burst mini hearts ──
+function burstHearts(x, y) {
+  const count = Math.floor(rand(4, 7));
+  for (let i = 0; i < count; i++) {
+    const el = document.createElement('div');
+    el.className = 'burst';
+    el.textContent = BURST_ICONS[Math.floor(Math.random() * BURST_ICONS.length)];
+
+    const angle = (Math.PI * 2 * i) / count + rand(-0.3, 0.3);
+    const dist = rand(50, 100);
+
+    el.style.cssText = `
+      left: ${x}px; top: ${y}px;
+      --bx: ${Math.cos(angle) * dist}px;
+      --by: ${Math.sin(angle) * dist}px;
+      --br: ${rand(0, 360)}deg;
+      animation-delay: ${i * 0.03}s;
+    `;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 1500);
   }
 }
 
-function ripple(x,y){
-  const c=rc();
-  const e=document.createElement('div');e.className='rp';
-  e.style.cssText=`left:${x}px;top:${y}px;border-color:${c}44`;
-  document.body.appendChild(e);setTimeout(()=>e.remove(),1100);
+// ── Expanding ring ──
+function showRing(x, y) {
+  const el = document.createElement('div');
+  el.className = 'ring';
+  el.style.cssText = `left:${x}px;top:${y}px;--rc:${rc()}55`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 1000);
 }
 
-function glow(x,y){
-  const e=document.createElement('div');e.className='gl';
-  e.style.cssText=`left:${x}px;top:${y}px;color:${rc()}`;
-  document.body.appendChild(e);setTimeout(()=>e.remove(),1000);
-}
-
-function sparkles(x,y){
-  for(let i=0;i<4;i++){
-    const e=document.createElement('div');e.className='sp';const c=rc();
-    e.style.cssText=`left:${x+(Math.random()-.5)*30}px;top:${y+(Math.random()-.5)*30}px;background:${c};box-shadow:0 0 5px ${c};animation-delay:${Math.random()*.2}s`;
-    document.body.appendChild(e);setTimeout(()=>e.remove(),900);
+// ── Sparkle dots ──
+function showDots(x, y) {
+  for (let i = 0; i < 5; i++) {
+    const el = document.createElement('div');
+    el.className = 'dot';
+    const c = rc();
+    el.style.cssText = `
+      left: ${x + rand(-25, 25)}px;
+      top: ${y + rand(-25, 25)}px;
+      --dc: ${c};
+      animation-delay: ${rand(0, 0.2)}s;
+    `;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 700);
   }
 }
 
-function handle(x,y){
-  if(!ph){document.getElementById('prompt').classList.add('hide');ph=true}
-  tc++;document.getElementById('cnt').textContent=tc;
-  glow(x,y);ripple(x,y);text(x,y);hearts(x,y);sparkles(x,y);
+// ── Spawn hearts continuously ──
+function startSpawning() {
+  // Initial batch
+  for (let i = 0; i < 5; i++) {
+    setTimeout(() => spawnHeart(), i * 600);
+  }
+
+  // Continuous spawning
+  setInterval(() => {
+    spawnHeart();
+  }, rand(800, 1500));
 }
 
-// Touch
-document.addEventListener('touchstart',e=>{e.preventDefault();for(const t of e.changedTouches)handle(t.clientX,t.clientY)},{passive:false});
-document.addEventListener('touchmove',e=>{e.preventDefault();for(const t of e.changedTouches){if(Math.random()>.5)sparkles(t.clientX,t.clientY);if(Math.random()>.8)text(t.clientX,t.clientY)}},{passive:false});
+// ── Also allow tapping anywhere on screen ──
+document.addEventListener('touchstart', (e) => {
+  // Only if not tapping a heart
+  if (e.target.classList.contains('float-heart')) return;
 
-// Mouse fallback
-document.addEventListener('mousedown',e=>handle(e.clientX,e.clientY));
-document.addEventListener('mousemove',e=>{if(e.buttons===1){if(Math.random()>.6)sparkles(e.clientX,e.clientY);if(Math.random()>.85)text(e.clientX,e.clientY)}});
+  const t = e.changedTouches[0];
+  if (!promptHidden) {
+    document.getElementById('prompt').classList.add('hide');
+    promptHidden = true;
+  }
+  // Small sparkle effect on empty area
+  showDots(t.clientX, t.clientY);
+}, { passive: true });
+
+document.addEventListener('click', (e) => {
+  if (e.target.classList.contains('float-heart')) return;
+  if (!promptHidden) {
+    document.getElementById('prompt').classList.add('hide');
+    promptHidden = true;
+  }
+  showDots(e.clientX, e.clientY);
+});
+
+// ── Init ──
+startSpawning();
 </script>
 </body>
 </html>
