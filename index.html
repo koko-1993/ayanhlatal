@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>မင်းအရမ်းလှတယ်</title>
+  <meta name="description" content="You are so beautiful - interactive love message">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Padauk:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    html,body{width:100%;height:100%;overflow:hidden;touch-action:none;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+    body{font-family:'Padauk',sans-serif;position:relative}
+
+    .bg{position:fixed;inset:0;background:linear-gradient(135deg,#0f0c29,#302b63,#24243e);background-size:400% 400%;animation:bg 15s ease infinite;z-index:0}
+    @keyframes bg{0%{background-position:0% 50%}50%{background-position:100% 100%}100%{background-position:0% 50%}}
+
+    .stars{position:fixed;inset:0;z-index:1;pointer-events:none}
+    .star{position:absolute;border-radius:50%;opacity:0;animation:rise linear infinite}
+    @keyframes rise{0%{opacity:0;transform:translateY(100vh) scale(0)}10%{opacity:.5}90%{opacity:.2}100%{opacity:0;transform:translateY(-10vh) scale(1)}}
+
+    /* Prompt */
+    .prompt{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2;pointer-events:none;transition:opacity 1s}
+    .prompt.hide{opacity:0}
+    .prompt-icon{font-size:3.5rem;margin-bottom:1rem;animation:pulse 2s ease-in-out infinite}
+    .prompt h2{color:rgba(255,255,255,.4);font-size:.9rem;letter-spacing:2px;font-weight:400}
+    .prompt p{color:rgba(255,255,255,.25);font-size:.8rem;margin-top:.4rem}
+    @keyframes pulse{0%,100%{transform:scale(1);opacity:.7}50%{transform:scale(1.2);opacity:1}}
+
+    /* Touch text */
+    .tt{position:fixed;z-index:10;pointer-events:none;white-space:nowrap;font-weight:700;text-align:center;text-shadow:0 0 15px currentColor,0 0 30px currentColor;animation:pop 2.5s ease-out forwards;transform:translate(-50%,-50%)}
+    @keyframes pop{0%{opacity:0;transform:translate(-50%,-50%) scale(.3);filter:blur(6px)}12%{opacity:1;transform:translate(-50%,-50%) scale(1.1);filter:blur(0)}30%{transform:translate(-50%,-50%) scale(1)}70%{opacity:.85;transform:translate(-50%,-60%) scale(1)}100%{opacity:0;transform:translate(-50%,-110%) scale(.5);filter:blur(3px)}}
+
+    /* Hearts */
+    .hb{position:fixed;z-index:9;pointer-events:none;font-size:1.1rem;animation:fly 1.6s ease-out forwards;transform:translate(-50%,-50%)}
+    @keyframes fly{0%{opacity:1;transform:translate(-50%,-50%) scale(.4)}100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(1.1) rotate(var(--r))}}
+
+    /* Ripple */
+    .rp{position:fixed;z-index:8;pointer-events:none;border:2px solid rgba(255,255,255,.25);border-radius:50%;width:50px;height:50px;transform:translate(-50%,-50%) scale(0);animation:rpe 1s ease-out forwards}
+    @keyframes rpe{0%{transform:translate(-50%,-50%) scale(0);opacity:.5}100%{transform:translate(-50%,-50%) scale(3);opacity:0}}
+
+    /* Glow */
+    .gl{position:fixed;z-index:7;pointer-events:none;width:60px;height:60px;border-radius:50%;transform:translate(-50%,-50%);animation:gp .9s ease-out forwards}
+    @keyframes gp{0%{opacity:.7;transform:translate(-50%,-50%) scale(.2);box-shadow:0 0 25px 8px currentColor}100%{opacity:0;transform:translate(-50%,-50%) scale(1.8);box-shadow:0 0 50px 15px currentColor}}
+
+    /* Sparkle */
+    .sp{position:fixed;z-index:11;pointer-events:none;width:3px;height:3px;border-radius:50%;animation:sf .7s ease-out forwards}
+    @keyframes sf{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(0) translateY(-15px)}}
+
+    /* Counter */
+    .ctr{position:fixed;bottom:env(safe-area-inset-bottom,1.5rem);bottom:1.5rem;left:50%;transform:translateX(-50%);color:rgba(255,255,255,.2);font-size:.7rem;letter-spacing:2px;z-index:5;pointer-events:none}
+    .ctr span{color:rgba(255,182,193,.5);font-size:.9rem;font-weight:700}
+  </style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="stars" id="stars"></div>
+  <div class="prompt" id="prompt">
+    <div class="prompt-icon">💖</div>
+    <h2>Touch Anywhere</h2>
+    <p>ဘယ်နေရာမဆို ထိလိုက်ပါ</p>
+  </div>
+  <div class="ctr" id="ctr">💕 <span id="cnt">0</span></div>
+
+<script>
+const C=['#ff6b9d','#c44dff','#ff4d8d','#ff85a1','#e879f9','#a78bfa','#f9a8d4','#fb7185','#f472b6','#c084fc','#ff9ff3','#f368e0','#ff75a0','#7c5cff','#ffc048','#00d2d3'];
+
+const M=[
+  'မင်းအရမ်းလှတယ်','မင်းအရမ်းလှတယ် ✨','အရမ်းလှတယ် 💗','လှလိုက်တာ 💖',
+  'မင်းချစ်စရာကြီး 🥰','ချစ်တယ် 💕','အရမ်းချစ်တယ် ❤️','မင်းကိုသတိရတယ်',
+  'မင်းအကောင်းဆုံးပဲ 🌟','နှလုံးသားလေး 💓','မင်းက အချစ်ဆုံး','လွမ်းတယ် 🌙',
+  'အမြဲချစ်မယ် 💘','ပန်းလေးလိုလှတယ် 🌸','ကြယ်လေးလိုတောက်ပတယ် ⭐',
+  'မင်းမရှိရင် မရဘူး 💝','အသက်ရှူလေလိုချစ်တယ်','Sweet 💗',
+  'I Love You 💖','So Beautiful 🦋','မင်းပဲ ချစ်တယ် 🌺','သိပ်ချစ်တယ် 💞',
+  'အိပ်မက်ထဲမှာတောင် မင်းပဲ 🌙','ချစ်တတ်တာ မင်းတစ်ယောက်ပဲ',
+  'လှပြီး ချစ်စရာကောင်းတယ်','နေ့တိုင်း ပိုချစ်လာတယ် 💗',
+  'မင်းပြုံးရင် ကမ္ဘာကြီး လှသွားတယ် 😊','အချိန်တိုင်း မင်းကိုပဲ စဉ်းစားတယ်',
+  'မင်းအတွက်ပဲ ရှင်သန်တာ ❤️','ချစ်ခြင်းရဲ့ အဓိပ္ပါယ်က မင်းပဲ'
+];
+
+const H=['💖','💗','💕','💓','💝','💘','🌸','✨','🦋','🌺','💐','🌷','⭐','🥰'];
+let tc=0,ph=false;
+
+// Stars
+(function(){
+  const c=document.getElementById('stars');
+  for(let i=0;i<25;i++){
+    const d=document.createElement('div');d.className='star';
+    const s=Math.random()*3+1,cl=C[Math.floor(Math.random()*C.length)];
+    d.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*100}%;background:${cl};box-shadow:0 0 ${s*3}px ${cl};animation-duration:${Math.random()*8+5}s;animation-delay:${Math.random()*10}s`;
+    c.appendChild(d);
+  }
+})();
+
+function rc(){return C[Math.floor(Math.random()*C.length)]}
+
+function text(x,y){
+  const e=document.createElement('div');e.className='tt';
+  const c=rc();
+  e.textContent=M[Math.floor(Math.random()*M.length)];
+  e.style.cssText=`left:${x}px;top:${y}px;color:${c};font-size:${(Math.random()*.4+.75).toFixed(2)}rem`;
+  document.body.appendChild(e);setTimeout(()=>e.remove(),2600);
+}
+
+function hearts(x,y){
+  const n=Math.floor(Math.random()*3)+3;
+  for(let i=0;i<n;i++){
+    const e=document.createElement('div');e.className='hb';
+    e.textContent=H[Math.floor(Math.random()*H.length)];
+    const a=(Math.PI*2*i)/n+(Math.random()-.5)*.5,d=Math.random()*90+40;
+    e.style.cssText=`left:${x}px;top:${y}px;--tx:${Math.cos(a)*d}px;--ty:${Math.sin(a)*d}px;--r:${Math.random()*360}deg;animation-delay:${i*.03}s`;
+    document.body.appendChild(e);setTimeout(()=>e.remove(),1800);
+  }
+}
+
+function ripple(x,y){
+  const c=rc();
+  const e=document.createElement('div');e.className='rp';
+  e.style.cssText=`left:${x}px;top:${y}px;border-color:${c}44`;
+  document.body.appendChild(e);setTimeout(()=>e.remove(),1100);
+}
+
+function glow(x,y){
+  const e=document.createElement('div');e.className='gl';
+  e.style.cssText=`left:${x}px;top:${y}px;color:${rc()}`;
+  document.body.appendChild(e);setTimeout(()=>e.remove(),1000);
+}
+
+function sparkles(x,y){
+  for(let i=0;i<4;i++){
+    const e=document.createElement('div');e.className='sp';const c=rc();
+    e.style.cssText=`left:${x+(Math.random()-.5)*30}px;top:${y+(Math.random()-.5)*30}px;background:${c};box-shadow:0 0 5px ${c};animation-delay:${Math.random()*.2}s`;
+    document.body.appendChild(e);setTimeout(()=>e.remove(),900);
+  }
+}
+
+function handle(x,y){
+  if(!ph){document.getElementById('prompt').classList.add('hide');ph=true}
+  tc++;document.getElementById('cnt').textContent=tc;
+  glow(x,y);ripple(x,y);text(x,y);hearts(x,y);sparkles(x,y);
+}
+
+// Touch
+document.addEventListener('touchstart',e=>{e.preventDefault();for(const t of e.changedTouches)handle(t.clientX,t.clientY)},{passive:false});
+document.addEventListener('touchmove',e=>{e.preventDefault();for(const t of e.changedTouches){if(Math.random()>.5)sparkles(t.clientX,t.clientY);if(Math.random()>.8)text(t.clientX,t.clientY)}},{passive:false});
+
+// Mouse fallback
+document.addEventListener('mousedown',e=>handle(e.clientX,e.clientY));
+document.addEventListener('mousemove',e=>{if(e.buttons===1){if(Math.random()>.6)sparkles(e.clientX,e.clientY);if(Math.random()>.85)text(e.clientX,e.clientY)}});
+</script>
+</body>
+</html>
