@@ -86,12 +86,19 @@
     .lucky-msg-card .msg-footer{color:rgba(255,182,193,.35);font-size:.7rem;letter-spacing:2px}
     .lucky-msg-card .msg-hearts{margin-top:1rem;font-size:1.2rem;letter-spacing:4px;animation:fadeInUp 1s ease .5s both}
     @keyframes fadeInUp{0%{opacity:0;transform:translateY(15px)}100%{opacity:1;transform:translateY(0)}}
+
+    /* ── Music Button ── */
+    .music-btn{position:fixed;top:max(env(safe-area-inset-top,1rem),1.2rem);right:1rem;z-index:300;width:40px;height:40px;border-radius:50%;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;font-size:1.1rem;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .2s,box-shadow .2s;box-shadow:0 0 15px rgba(196,77,255,.1)}
+    .music-btn:active{transform:scale(.9)}
+    .music-btn.playing{box-shadow:0 0 20px rgba(255,107,157,.25);border-color:rgba(255,107,157,.3)}
   </style>
 </head>
 <body>
   <div class="bg"></div>
   <div class="amb a1"></div><div class="amb a2"></div><div class="amb a3"></div>
   <div class="timer-bar" id="timerBar"></div>
+  <audio id="bgMusic" src="song.mp3" preload="auto" loop></audio>
+  <div class="music-btn" id="musicBtn">🔇</div>
 
   <div class="prompt" id="prompt">
     <div class="prompt-heart">💖</div>
@@ -253,6 +260,42 @@ document.addEventListener('click',(e)=>{
   if(!ph){document.getElementById('prompt').classList.add('hide');ph=true}
   showDots(e.clientX,e.clientY);
 });
+
+// ── Music ──
+const audio=document.getElementById('bgMusic');
+const musicBtn=document.getElementById('musicBtn');
+let musicStarted=false;
+audio.volume=0.5;
+
+function tryPlayMusic(){
+  if(musicStarted)return;
+  audio.play().then(()=>{
+    musicStarted=true;
+    musicBtn.textContent='🔊';
+    musicBtn.classList.add('playing');
+  }).catch(()=>{});
+}
+
+musicBtn.addEventListener('click',(e)=>{
+  e.stopPropagation();
+  if(!musicStarted){tryPlayMusic();return}
+  if(audio.paused){audio.play();musicBtn.textContent='🔊';musicBtn.classList.add('playing')}
+  else{audio.pause();musicBtn.textContent='🔇';musicBtn.classList.remove('playing')}
+});
+musicBtn.addEventListener('touchstart',(e)=>e.stopPropagation(),{passive:true});
+
+// Auto-play on first interaction
+const _origHandle=handleTouch;
+function handleTouch(x,y){tryPlayMusic();_origHandle(x,y)}
+function handleTouch(x,y){
+  tryPlayMusic();
+  if(ended)return;
+  // re-run original logic from touchstart handlers
+}
+
+// Hook into first touch
+document.addEventListener('touchstart',()=>tryPlayMusic(),{once:true,passive:true});
+document.addEventListener('click',()=>tryPlayMusic(),{once:true});
 
 // Init
 for(let i=0;i<5;i++)setTimeout(()=>spawnHeart(),i*600);
