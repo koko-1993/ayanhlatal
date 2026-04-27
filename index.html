@@ -69,8 +69,11 @@
     .lucky-box .box-count{font-size:2.5rem;font-weight:700;background:linear-gradient(135deg,#ff6b9d,#c44dff,#ff4d8d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.3rem}
     .lucky-box .box-sub{color:rgba(255,255,255,.3);font-size:.75rem;margin-bottom:1.2rem}
 
-    .lucky-box .open-btn{display:inline-block;padding:12px 36px;border-radius:50px;border:none;background:linear-gradient(135deg,#ff6b9d,#c44dff);color:#fff;font-family:'Padauk',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:1px;cursor:pointer;box-shadow:0 4px 25px rgba(196,77,255,.35);transition:transform .2s,box-shadow .2s;-webkit-tap-highlight-color:transparent}
-    .lucky-box .open-btn:active{transform:scale(.95);box-shadow:0 2px 15px rgba(196,77,255,.25)}
+    .lucky-actions{display:flex;flex-direction:column;gap:12px;align-items:center}
+    .lucky-box .open-btn,.lucky-box .restart-btn,.lucky-msg-card .restart-btn{display:inline-block;padding:12px 36px;border-radius:50px;border:none;color:#fff;font-family:'Padauk',sans-serif;font-size:.9rem;font-weight:700;letter-spacing:1px;cursor:pointer;transition:transform .2s,box-shadow .2s;-webkit-tap-highlight-color:transparent}
+    .lucky-box .open-btn{background:linear-gradient(135deg,#ff6b9d,#c44dff);box-shadow:0 4px 25px rgba(196,77,255,.35)}
+    .lucky-box .open-btn:active,.lucky-box .restart-btn:active,.lucky-msg-card .restart-btn:active{transform:scale(.95)}
+    .lucky-box .restart-btn,.lucky-msg-card .restart-btn{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);box-shadow:0 4px 18px rgba(0,0,0,.2)}
 
     /* ── Lucky Message (after open) ── */
     .lucky-msg-overlay{position:fixed;inset:0;z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,0);opacity:0;pointer-events:none;transition:opacity 1s,background 1s}
@@ -85,6 +88,7 @@
     .lucky-msg-card .msg-text{color:rgba(255,255,255,.85);font-size:1.05rem;line-height:1.8;margin-bottom:1.5rem;text-shadow:0 0 20px rgba(255,107,157,.2)}
     .lucky-msg-card .msg-footer{color:rgba(255,182,193,.35);font-size:.7rem;letter-spacing:2px}
     .lucky-msg-card .msg-hearts{margin-top:1rem;font-size:1.2rem;letter-spacing:4px;animation:fadeInUp 1s ease .5s both}
+    .lucky-msg-card .restart-btn{margin-top:1.4rem}
     @keyframes fadeInUp{0%{opacity:0;transform:translateY(15px)}100%{opacity:1;transform:translateY(0)}}
 
     /* ── Music Button ── */
@@ -101,13 +105,13 @@
   <div class="music-btn" id="musicBtn">🔇</div>
 
   <div class="prompt" id="prompt">
-    <div class="prompt-heart">💖</div>
-    <h2>အသဲပုံလေးတွေကို ထိလိုက်ပါ</h2>
-    <p>Touch the floating hearts</p>
+    <div class="prompt-heart">🌻</div>
+    <h2>နေကြာပန်းလေးတွေကို ထိလိုက်ပါ</h2>
+    <p>Touch the floating sunflowers</p>
   </div>
 
   <div class="top-title">✦ with love ✦</div>
-  <div class="counter" id="ctr">💕 <span id="cnt">0</span></div>
+  <div class="counter" id="ctr">🌻 <span id="cnt">0</span></div>
 
   <!-- Lucky Box -->
   <div class="lucky-overlay" id="luckyOverlay">
@@ -115,8 +119,11 @@
       <div class="box-icon">🎁</div>
       <div class="box-label">YOUR LUCKY COUNT</div>
       <div class="box-count" id="boxCount">0</div>
-      <div class="box-sub">နှလုံးသားတွေ ဖမ်းမိတယ်</div>
-      <button class="open-btn" id="openBtn">ဖွင့်ကြည့်မယ် 💝</button>
+      <div class="box-sub">sunflower တွေ ဖမ်းမိတယ်</div>
+      <div class="lucky-actions">
+        <button class="open-btn" id="openBtn">ဖွင့်ကြည့်မယ် 🌻</button>
+        <button class="restart-btn" id="restartBtn">ထပ်ဆော့မယ် 🔁</button>
+      </div>
     </div>
   </div>
 
@@ -125,26 +132,29 @@
     <div class="lucky-msg-card">
       <div class="msg-icon">💌</div>
       <div class="msg-text" id="luckyMsgText"></div>
-      <div class="msg-hearts">💖 💗 💕 💓 💝</div>
-      <div class="msg-footer">✦ WITH ALL MY HEART ✦</div>
+      <div class="msg-hearts">🌻 🌻 🌻 🌻 🌻</div>
+      <div class="msg-footer">✦ WITH SUNFLOWER LOVE ✦</div>
+      <button class="restart-btn" id="messageRestartBtn">နောက်တစ်ခါ ထပ်ဆော့မယ် ✨</button>
     </div>
   </div>
 
 <script>
-const C=['#ff6b9d','#c44dff','#ff4d8d','#ff85a1','#e879f9','#a78bfa','#f9a8d4','#fb7185','#f472b6','#c084fc','#ff9ff3','#f368e0','#ff75a0','#ffc048','#00d2d3'];
-const M=['မင်းအရမ်းလှတယ်','မင်းအရမ်းလှတယ် ✨','အရမ်းလှတယ် 💗','လှလိုက်တာ 💖','မင်းချစ်စရာကြီး 🥰','ချစ်တယ် 💕','အရမ်းချစ်တယ် ❤️','မင်းကိုသတိရတယ်','နှလုံးသားလေး 💓','မင်းက အချစ်ဆုံး','လွမ်းတယ် 🌙','အမြဲချစ်မယ် 💘','ပန်းလေးလိုလှတယ် 🌸','ကြယ်လေးလိုတောက်ပတယ် ⭐','I Love You 💖','So Beautiful 🦋','သိပ်ချစ်တယ် 💞'];
-const H=['💖','💗','💕','💓','💝','💘','❤️','🩷','💜','🤍','♥️'];
-const BI=['💖','💗','✨','🌸','⭐','💕','🦋','💫','🩷'];
+const C=['#ffb703','#fb8500','#ffd166','#f4a261','#e9c46a','#ffcb77','#ff9f1c','#f6bd60','#84a59d','#2a9d8f','#e76f51','#00d2d3'];
+const M=['မင်းအရမ်းလှတယ် 🌻','မင်းအရမ်းလှတယ် ✨','အရမ်းလှတယ် 🌻','လှလိုက်တာ 🌻','မင်းချစ်စရာကြီး 🥰','ချစ်တယ် 🌻','အရမ်းချစ်တယ် 🌻','မင်းကိုသတိရတယ်','နေကြာပန်းလေးလို လှတယ် 🌻','မင်းက အချစ်ဆုံး','လွမ်းတယ် 🌙','အမြဲချစ်မယ် 🌻','ပန်းလေးလိုလှတယ် 🌸','ကြယ်လေးလိုတောက်ပတယ် ⭐','I Love You 🌻','So Beautiful 🦋','သိပ်ချစ်တယ် 🌻'];
+const H=['🌻','🌻','🌻','🌻','🌻','🌻'];
+const BI=['🌻','✨','🌼','⭐','🦋','💫','🌞'];
 
 const LUCKY_MSGS=[
-  'မင်းရဲ့အပြုံးဟာ\nငါ့ကမ္ဘာကြီးကို\nပြောင်းပြန်လှန်ပစ်နိုင်တယ် 💖',
+  'မင်းရဲ့အပြုံးဟာ\nငါ့ကမ္ဘာကြီးကို\nပြောင်းပြန်လှန်ပစ်နိုင်တယ် 🌻',
   'မင်းမရှိတဲ့ တစ်နေ့တစ်နေ့ဟာ\nငါ့အတွက် နှစ်ပေါင်းများစွာ\nကြာသလိုပဲ 🌙',
-  'ငါ့နှလုံးသားထဲမှာ\nမင်းတစ်ယောက်ပဲ\nအစဉ်အမြဲ ရှိနေမယ် ❤️',
+  'ငါ့နှလုံးသားထဲမှာ\nမင်းတစ်ယောက်ပဲ\nအစဉ်အမြဲ ရှိနေမယ် 🌻',
   'မင်းကို ပထမဆုံး\nတွေ့တဲ့နေ့ကတည်းက\nငါ့ဘဝ ပြောင်းသွားခဲ့တယ် ✨',
   'လောကကြီးတစ်ခုလုံးမှာ\nမင်းလိုလူမျိုး\nနောက်ထပ် ရှိမှာ မဟုတ်ဘူး 🦋',
   'ငါ့အတွက် အလှဆုံးအရာက\nမင်းရဲ့ ရှေ့မှာ ရှိနေရတာပဲ 🌸',
-  'နက်ဖြန် ဘာဖြစ်မယ် မသိဘူး\nဒါပေမယ့် မင်းနဲ့အတူဆို\nဘာမဆို ရင်ဆိုင်နိုင်တယ် 💪💖',
+  'နက်ဖြန် ဘာဖြစ်မယ် မသိဘူး\nဒါပေမယ့် မင်းနဲ့အတူဆို\nဘာမဆို ရင်ဆိုင်နိုင်တယ် 💪🌻',
   'မင်းရဲ့ မျက်လုံးလေးတွေဟာ\nကြယ်တွေထက် ပိုတောက်ပတယ်\nသိလား 🌟',
+  'ငါ့ကို အဖြေဘယ်တော့ပေးမှာလည်း 🌻',
+  'ငါ့ကို ချစ်လား 🌻',
 ];
 
 const TOTAL_TIME = 30; // seconds
@@ -183,6 +193,29 @@ function endGame(){
   },800);
 }
 
+function startSpawning(){
+  for(let i=0;i<5;i++)setTimeout(()=>spawnHeart(),i*600);
+  spawnId=setInterval(spawnHeart,1200);
+}
+
+function resetGame(){
+  ended=false;
+  ph=false;
+  tc=0;
+  lmi=-1;
+  if(spawnId)clearInterval(spawnId);
+  document.querySelectorAll('.float-heart,.msg,.burst,.ring,.dot').forEach(el=>el.remove());
+  document.getElementById('cnt').textContent='0';
+  document.getElementById('boxCount').textContent='0';
+  document.getElementById('timerBar').style.width='0%';
+  document.getElementById('prompt').classList.remove('hide');
+  document.getElementById('ctr').style.opacity='1';
+  document.getElementById('luckyOverlay').classList.remove('show');
+  document.getElementById('luckyMsgOverlay').classList.remove('show');
+  startSpawning();
+  startTimer();
+}
+
 // Open button
 document.getElementById('openBtn').addEventListener('click',()=>{
   document.getElementById('luckyOverlay').classList.remove('show');
@@ -193,6 +226,10 @@ document.getElementById('openBtn').addEventListener('click',()=>{
   },500);
 });
 document.getElementById('openBtn').addEventListener('touchstart',(e)=>{e.stopPropagation()},{passive:true});
+document.getElementById('restartBtn').addEventListener('click',(e)=>{e.stopPropagation();resetGame()});
+document.getElementById('messageRestartBtn').addEventListener('click',(e)=>{e.stopPropagation();resetGame()});
+document.getElementById('restartBtn').addEventListener('touchstart',(e)=>{e.stopPropagation()},{passive:true});
+document.getElementById('messageRestartBtn').addEventListener('touchstart',(e)=>{e.stopPropagation()},{passive:true});
 
 function spawnHeart(){
   if(ended)return;
@@ -256,7 +293,7 @@ document.addEventListener('touchstart',(e)=>{
 },{passive:true});
 
 document.addEventListener('click',(e)=>{
-  if(e.target.classList.contains('float-heart')||e.target.classList.contains('open-btn')||ended)return;
+  if(e.target.classList.contains('float-heart')||e.target.classList.contains('open-btn')||e.target.classList.contains('restart-btn')||ended)return;
   if(!ph){document.getElementById('prompt').classList.add('hide');ph=true}
   showDots(e.clientX,e.clientY);
 });
@@ -284,22 +321,12 @@ musicBtn.addEventListener('click',(e)=>{
 });
 musicBtn.addEventListener('touchstart',(e)=>e.stopPropagation(),{passive:true});
 
-// Auto-play on first interaction
-const _origHandle=handleTouch;
-function handleTouch(x,y){tryPlayMusic();_origHandle(x,y)}
-function handleTouch(x,y){
-  tryPlayMusic();
-  if(ended)return;
-  // re-run original logic from touchstart handlers
-}
-
 // Hook into first touch
 document.addEventListener('touchstart',()=>tryPlayMusic(),{once:true,passive:true});
 document.addEventListener('click',()=>tryPlayMusic(),{once:true});
 
 // Init
-for(let i=0;i<5;i++)setTimeout(()=>spawnHeart(),i*600);
-spawnId=setInterval(spawnHeart,1200);
+startSpawning();
 startTimer();
 </script>
 </body>
